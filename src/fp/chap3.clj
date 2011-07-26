@@ -9,6 +9,11 @@
   (atom {:f '()
          :r '()}))
 
+;; returns the first element in the queue
+(defn head
+  [q]
+  (first (:f @q)))
+
 ;; normally adds to the front of rear, but to keep
 ;; the invariant it adds to front in case it's empty
 (defn snoc
@@ -25,13 +30,3 @@
     (if (= 1 (count (:f @q)))
       (swap! q #(let [new-f (reverse (:r %))] {:f new-f :r '()})))
     res))
-
-(defn head
-  [q]
-  (first (:f @q)))
-
-(defn tail
-  [q]
-  (if (empty? (:r @q))
-    (last (:f @q))
-    (first (:r @q))))
