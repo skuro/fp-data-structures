@@ -4,29 +4,39 @@
 ;; in this implementation the queue holds values
 ;; in two different buckets, front and rear.
 ;; front is empty only if rear is empty.
-(defn create-queue
+(defn make-queue
+  [f r]
+  {:f f
+   :r r})
+
+(defn emptyq
   []
-  (atom {:f '()
-         :r '()}))
+  (make-queue '() '()))
+
+;; the invariant for the queue is that f is empty only if also r is
+;; empty, otherwise f is assigned (reverse r)
+(defn honor-invariant
+  [q]
+  (if (empty? (:f q))
+    (make-queue (reverse (:r q)) '())
+    q))
 
 ;; returns the first element in the queue
 (defn head
   [q]
-  (first (:f @q)))
+  (first (:f q)))
 
 ;; normally adds to the front of rear, but to keep
 ;; the invariant it adds to front in case it's empty
 (defn snoc
   [q x]
-  (let [k (if (empty? (:f @q)) :f :r)]
-    (swap! q #(assoc % k (conj (% k) x)))))
+  (honor-invariant (make-queue (:f q)
+                               (conj (:r q) x))))
 
 ;; normally takes out the head of front, but to keep
 ;; the invariant it reverses rear and moves it to front
 ;; in case front has only one value to pop
 (defn tail
   [q]
-  (let [res (head q)]
-    (if (= 1 (count (:f @q)))
-      (swap! q #(let [new-f (reverse (:r %))] {:f new-f :r '()})))
-    res))
+  (honor-invariant (make-queue (rest (:f q))
+                               (:r q))))
